@@ -1,6 +1,6 @@
 {
   "name": "@donglan/mVue",
-  "version": "1.0.2",
+  "version": "1.0.6",
   "description": "一个用于学习Vue3核心原理的迷你实现版本",
   "type": "module",
   "main": "dist/mvue.cjs.js",

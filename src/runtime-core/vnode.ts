@@ -122,8 +122,10 @@ export function createVNode(
  * @param n2 第二个VNode
  * @returns 是否相同
  */
-export function isSameVNodeType(n1: VNode, n2: VNode): boolean {
-  return n1.type === n2.type && n1.key === n2.key
+export function isSameVNodeType(n1: VNode | null, n2: VNode | null): boolean {
+  // 如果任一节点为null，则不相同
+  if (n1 === null || n2 === null) return false;
+  return n1.type === n2.type && n1.key === n2.key;
 }
 
 /**

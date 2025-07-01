@@ -51,4 +51,4 @@ export {
 export { createRenderer, createApp, render } from './runtime-dom'
 
 // 版本信息
-export const version = '1.0.1' 
+export const version = '1.0.6' 

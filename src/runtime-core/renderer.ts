@@ -298,7 +298,7 @@ export function createRenderer(options: RendererOptions) {
   }
   
   /**
-   * 挂载子节点
+   * 挂载子节点数组
    * @param children 子节点数组
    * @param container 容器
    * @param anchor 锚点元素
@@ -310,9 +310,13 @@ export function createRenderer(options: RendererOptions) {
     anchor: any,
     parentComponent: ComponentInternalInstance | null
   ) {
+    // 遍历子节点，挂载每个子节点
     for (let i = 0; i < children.length; i++) {
       const child = children[i]
-      patch(null, child, container, anchor, parentComponent)
+      // 跳过null或undefined的子节点
+      if (child != null) {
+        patch(null, child, container, anchor, parentComponent)
+      }
     }
   }
   
@@ -405,6 +409,9 @@ export function createRenderer(options: RendererOptions) {
    * @param children 子节点数组
    */
   function unmountChildren(children: any[]) {
+    // 添加对children为null或undefined的检查
+    if (!children) return;
+    
     for (let i = 0; i < children.length; i++) {
       unmount(children[i])
     }
@@ -479,7 +486,8 @@ export function createRenderer(options: RendererOptions) {
       const keyToNewIndexMap = new Map()
       for (let i = s2; i < l2; i++) {
         const child = c2[i]
-        if (child.key != null) {
+        // 添加对child为null的检查
+        if (child && child.key != null) {
           keyToNewIndexMap.set(child.key, i)
         }
       }
@@ -496,13 +504,13 @@ export function createRenderer(options: RendererOptions) {
         
         // 尝试找到与旧节点对应的新节点的索引
         let newIndex
-        if (oldChild.key != null) {
+        if (oldChild && oldChild.key != null) {
           // 有key，直接查找
           newIndex = keyToNewIndexMap.get(oldChild.key)
         } else {
           // 没有key，遍历查找相同类型的节点
           for (let j = s2; j < l2; j++) {
-            if (isSameVNodeType(oldChild, c2[j])) {
+            if (c2[j] && isSameVNodeType(oldChild, c2[j])) {
               newIndex = j
               break
             }
@@ -528,7 +536,7 @@ export function createRenderer(options: RendererOptions) {
         const child = c2[i]
         // 跳过已处理的节点
         if (child !== null) {
-          const anchor = i + 1 < l2 ? c2[i + 1].el : parentAnchor
+          const anchor = i + 1 < l2 ? (c2[i + 1] && c2[i + 1].el) : parentAnchor
           patch(null, child, container, anchor, parentComponent)
         }
       }
@@ -660,6 +668,9 @@ export function createRenderer(options: RendererOptions) {
    * @param vnode 要卸载的虚拟节点
    */
   function unmount(vnode: VNode) {
+    // 添加对vnode为null的检查
+    if (!vnode) return;
+    
     if (vnode.type === Fragment) {
       // Fragment节点，卸载其子节点
       unmountChildren(vnode.children as any[])
@@ -694,11 +705,17 @@ export function createRenderer(options: RendererOptions) {
    */
   function patch(
     n1: VNode | null,
-    n2: VNode,
+    n2: VNode | null,
     container: any,
     anchor: any = null,
     parentComponent: ComponentInternalInstance | null = null
   ) {
+    // 如果新节点为null，则执行卸载操作
+    if (n2 === null) {
+      if (n1) unmount(n1);
+      return;
+    }
+    
     // 如果新旧节点类型不同，卸载旧节点
     if (n1 && !isSameVNodeType(n1, n2)) {
       unmount(n1)
