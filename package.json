@@ -1,46 +1,25 @@
 {
-  "name": "@donglan/mVue",
-  "version": "1.2.0",
-  "description": "一个用于学习Vue3核心原理的迷你实现版本",
-  "type": "module",
-  "main": "dist/mvue.cjs.js",
-  "module": "dist/mvue.esm-bundler.js",
-  "types": "dist/mvue.d.ts",
-  "packageManager": "pnpm@10.11.0",
-  "bin": {
-    "mvue-compile": "src/cli/template-compiler.js"
-  },
+  "name": "mvue-test-project",
+  "version": "1.0.0",
+  "description": "测试mini-vue框架的示例项目",
+  "main": "index.js",
   "scripts": {
-    "dev": "rollup -c -w",
-    "build": "rollup -c",
-    "test": "jest",
-    "compile": "node src/cli/template-compiler.js",
-    "publish:local": "npm publish --registry http://114.55.81.115/"
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "update-mvue": "xcopy /S /Y ..\\dist\\* .\\mini-vue-local\\"
   },
   "keywords": [
-    "vue3",
-    "mini-vue",
-    "reactive",
-    "javascript",
-    "template-compiler"
+    "mvue",
+    "vue",
+    "测试"
   ],
-  "author": "donglan",
-  "license": "MIT",
-  "devDependencies": {
-    "@babel/core": "^7.20.12",
-    "@babel/preset-env": "^7.20.2",
-    "@babel/preset-typescript": "^7.18.6",
-    "@rollup/plugin-babel": "^6.0.3",
-    "@rollup/plugin-node-resolve": "^15.0.1",
-    "@rollup/plugin-terser": "^0.4.0",
-    "@rollup/plugin-typescript": "^11.0.0",
-    "@types/jest": "^29.4.0",
-    "jest": "^29.4.2",
-    "rollup": "^3.15.0",
-    "tslib": "^2.5.0",
-    "typescript": "^4.9.5"
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
   },
-  "publishConfig": {
-    "registry": "http://114.55.81.115/"
-  }
+  "devDependencies": {
+    "vite": "^4.5.14"
+  },
+  "packageManager": "pnpm@10.11.0"
 }
