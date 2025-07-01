@@ -1,25 +1,42 @@
 {
-  "name": "mvue-test-project",
-  "version": "1.0.0",
-  "description": "测试mini-vue框架的示例项目",
-  "main": "index.js",
+  "name": "@donglan/mvue",
+  "version": "2.0.0",
+  "description": "一个简化版的Vue框架实现",
+  "main": "dist/mvue.cjs.js",
+  "module": "dist/mvue.esm-bundler.js",
+  "browser": "dist/mvue.global.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview",
-    "update-mvue": "xcopy /S /Y ..\\dist\\* .\\mini-vue-local\\"
+    "dev": "rollup -c -w",
+    "build": "rollup -c",
+    "prepare": "npm run build",
+    "publish": "npm publish --access public --registry http://114.55.81.115/"
   },
   "keywords": [
     "mvue",
     "vue",
-    "测试"
+    "framework"
   ],
-  "author": "",
-  "license": "ISC",
-  "dependencies": {
-  },
+  "author": "donglan",
+  "license": "MIT",
+  "dependencies": {},
   "devDependencies": {
-    "vite": "^4.5.14"
+    "@babel/core": "^7.23.9",
+    "@babel/preset-env": "^7.23.9",
+    "@rollup/plugin-babel": "^6.0.4",
+    "@rollup/plugin-commonjs": "^25.0.7",
+    "@rollup/plugin-node-resolve": "^15.2.3",
+    "@rollup/plugin-terser": "^0.4.4",
+    "@rollup/plugin-typescript": "^11.1.6",
+    "rollup": "^4.9.6",
+    "typescript": "^5.3.3"
+  },
+  "publishConfig": {
+    "registry": "http://114.55.81.115/",
+    "access": "public"
   },
   "packageManager": "pnpm@10.11.0"
 }

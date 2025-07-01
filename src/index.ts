@@ -56,5 +56,12 @@ export {
   compileToFunction
 } from './compiler'
 
+// SFC编译器 (新增)
+export {
+  parseSFC,
+  compileSFC,
+  compileVueFile
+} from './compiler-sfc'
+
 // 版本信息
 export const version = '1.2.0' 
