@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>@donglan/mVue - Mini Vue 示例</title>
+  <script src="../dist/mvue.global.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      line-height: 1.6;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      color: #333;
+    }
+    .counter {
+      border: 1px solid #ddd;
+      padding: 20px;
+      margin-top: 20px;
+      border-radius: 8px;
+      background-color: #f9f9f9;
+    }
+    button {
+      background-color: #4CAF50;
+      border: none;
+      color: white;
+      padding: 8px 16px;
+      text-align: center;
+      text-decoration: none;
+      display: inline-block;
+      font-size: 14px;
+      margin: 4px 2px;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+  <h1>@donglan/mVue - Mini Vue 示例</h1>
+  
+  <div id="app"></div>
+
+  <script>
+    console.log('MVue:', MVue);
+    const { createApp, ref, reactive, computed, onMounted } = MVue;
+
+    // 创建一个计数器组件
+    const Counter = {
+      setup() {
+        // 创建响应式状态
+        const count = ref(0);
+        const doubleCount = computed(() => count.value * 2);
+        
+        // 事件处理函数
+        const increment = () => {
+          count.value++;
+          console.log('增加后的count:', count.value);
+        };
+        
+        const decrement = () => {
+          if (count.value > 0) {
+            count.value--;
+            console.log('减少后的count:', count.value);
+          }
+        };
+        
+        // 生命周期钩子
+        onMounted(() => {
+          console.log('计数器组件已挂载!');
+        });
+        
+        // 暴露给模板使用的变量和方法
+        return {
+          count,
+          doubleCount,
+          increment,
+          decrement
+        };
+      },
+      // 模板函数，返回虚拟DOM
+      render() {
+        const { h } = MVue;
+        const { count, doubleCount, increment, decrement } = this;
+        
+        // 在渲染函数中直接使用count和doubleCount，不需要.value
+        return h('div', { class: 'counter' }, [
+          h('h2', null, '计数器示例'),
+          h('p', null, `当前计数: ${count}`),
+          h('p', null, `双倍计数: ${doubleCount}`),
+          h('button', { onClick: increment }, '增加'),
+          h('button', { onClick: decrement }, '减少')
+        ]);
+      }
+    };
+    
+    // 使用我们的Counter组件创建应用
+    const app = createApp({
+      render() {
+        const { h } = MVue;
+        return h(Counter);
+      }
+    });
+    
+    // 挂载到DOM
+    app.mount('#app');
+  </script>
+</body>
+</html> 

@@ -1,0 +1,14 @@
+# 依赖
+node_modules
+.DS_Store
+
+# 构建产物
+dist
+coverage
+
+# 编辑器配置
+.vscode
+.idea
+
+# 测试项目
+mvue-test-project/ 
