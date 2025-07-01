@@ -95,4 +95,23 @@ export const capitalize = (str: string): string => {
  */
 export const toHandlerKey = (event: string): string => {
   return event ? `on${capitalize(event)}` : ``
+}
+
+/**
+ * 合并对象
+ * @param target 目标对象
+ * @param sources 源对象列表
+ * @returns 合并后的对象
+ */
+export function extend<T extends object, U extends object>(
+  target: T,
+  ...sources: U[]
+): T & U {
+  const result = Object.assign({}, target) as T & U
+  sources.forEach(source => {
+    Object.keys(source).forEach(key => {
+      (result as any)[key] = (source as any)[key]
+    })
+  })
+  return result
 } 

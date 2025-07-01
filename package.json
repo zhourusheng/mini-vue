@@ -1,23 +1,28 @@
 {
   "name": "@donglan/mVue",
-  "version": "1.0.6",
+  "version": "1.2.0",
   "description": "一个用于学习Vue3核心原理的迷你实现版本",
   "type": "module",
   "main": "dist/mvue.cjs.js",
   "module": "dist/mvue.esm-bundler.js",
   "types": "dist/mvue.d.ts",
   "packageManager": "pnpm@10.11.0",
+  "bin": {
+    "mvue-compile": "src/cli/template-compiler.js"
+  },
   "scripts": {
     "dev": "rollup -c -w",
     "build": "rollup -c",
     "test": "jest",
+    "compile": "node src/cli/template-compiler.js",
     "publish:local": "npm publish --registry http://114.55.81.115/"
   },
   "keywords": [
     "vue3",
     "mini-vue",
     "reactive",
-    "javascript"
+    "javascript",
+    "template-compiler"
   ],
   "author": "donglan",
   "license": "MIT",

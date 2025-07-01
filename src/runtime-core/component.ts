@@ -8,6 +8,7 @@ import { emit } from './componentEmits'
 import { initProps } from './componentProps'
 import { initSlots } from './componentSlots'
 import { VNode } from './vnode'
+import { handleComponentTemplate } from './componentTemplate'
 
 /**
  * 当前正在处理的组件实例
@@ -177,6 +178,9 @@ export function setupComponent(instance: ComponentInternalInstance) {
 
   // 处理有状态组件
   setupStatefulComponent(instance)
+
+  // 处理模板
+  handleComponentTemplate(instance)
 }
 
 /**

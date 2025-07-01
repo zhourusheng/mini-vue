@@ -50,5 +50,11 @@ export {
 // 运行时DOM相关
 export { createRenderer, createApp, render } from './runtime-dom'
 
+// 模板编译系统
+export {
+  compile,
+  compileToFunction
+} from './compiler'
+
 // 版本信息
-export const version = '1.0.6' 
+export const version = '1.2.0' 

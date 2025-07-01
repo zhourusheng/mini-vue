@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mini-Vue 模板系统演示</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      line-height: 1.6;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .demo-section {
+      margin-bottom: 30px;
+      border: 1px solid #eee;
+      border-radius: 5px;
+      padding: 15px;
+    }
+    .demo-section h2 {
+      margin-top: 0;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 10px;
+    }
+    .result {
+      background-color: #f8f8f8;
+      padding: 10px;
+      border-radius: 4px;
+      margin-top: 10px;
+    }
+    .code {
+      background-color: #f5f5f5;
+      padding: 10px;
+      border-radius: 4px;
+      font-family: monospace;
+      white-space: pre-wrap;
+      margin-bottom: 10px;
+    }
+    .highlight {
+      color: #cc0000;
+    }
+    button {
+      background-color: #4CAF50;
+      border: none;
+      color: white;
+      padding: 8px 16px;
+      text-align: center;
+      text-decoration: none;
+      display: inline-block;
+      font-size: 14px;
+      margin: 4px 2px;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+    input {
+      padding: 8px;
+      margin: 5px 0;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Mini-Vue 模板系统演示 (v1.2.0)</h1>
+  <p>这个示例展示了Mini-Vue模板编译系统的主要功能。</p>
+  
+  <div id="app">
+    <!-- 将由Mini-Vue渲染 -->
+  </div>
+  
+  <div class="demo-section">
+    <h2>1. 基本插值</h2>
+    <div class="code">&lt;div&gt;{{ message }}&lt;/div&gt;</div>
+    <div id="demo1" class="result"></div>
+  </div>
+  
+  <div class="demo-section">
+    <h2>2. 指令绑定</h2>
+    <div class="code">&lt;div :title="title" @click="handleClick"&gt;
+  点击我触发事件
+&lt;/div&gt;</div>
+    <div id="demo2" class="result"></div>
+  </div>
+  
+  <div class="demo-section">
+    <h2>3. 条件渲染</h2>
+    <div class="code">&lt;div&gt;
+  &lt;p v-if="show"&gt;显示这段文本&lt;/p&gt;
+  &lt;p v-else&gt;显示另一段文本&lt;/p&gt;
+  &lt;button @click="toggleShow"&gt;切换显示&lt;/button&gt;
+&lt;/div&gt;</div>
+    <div id="demo3" class="result"></div>
+  </div>
+  
+  <div class="demo-section">
+    <h2>4. 列表渲染</h2>
+    <div class="code">&lt;ul&gt;
+  &lt;li v-for="(item, index) in items" :key="index"&gt;
+    {{ index + 1 }}. {{ item.text }}
+  &lt;/li&gt;
+&lt;/ul&gt;</div>
+    <div id="demo4" class="result"></div>
+  </div>
+  
+  <div class="demo-section">
+    <h2>5. 表单绑定</h2>
+    <div class="code">&lt;div&gt;
+  &lt;input v-model="inputValue" placeholder="请输入内容"&gt;
+  &lt;p&gt;您输入的内容: {{ inputValue }}&lt;/p&gt;
+&lt;/div&gt;</div>
+    <div id="demo5" class="result"></div>
+  </div>
+  
+  <div class="demo-section">
+    <h2>6. 自定义指令</h2>
+    <div class="code">&lt;div&gt;
+  &lt;input v-focus placeholder="自动聚焦"&gt;
+  &lt;p v-highlight:warning="'red'"&gt;带有自定义高亮效果的文本&lt;/p&gt;
+&lt;/div&gt;</div>
+    <div id="demo6" class="result"></div>
+  </div>
+  
+  <div class="demo-section">
+    <h2>7. 插槽</h2>
+    <div class="code">&lt;my-component&gt;
+  &lt;template #header&gt;
+    &lt;h3&gt;自定义标题&lt;/h3&gt;
+  &lt;/template&gt;
+  &lt;template #default&gt;
+    &lt;p&gt;默认内容&lt;/p&gt;
+  &lt;/template&gt;
+  &lt;template #footer&gt;
+    &lt;p&gt;页脚内容&lt;/p&gt;
+  &lt;/template&gt;
+&lt;/my-component&gt;</div>
+    <div id="demo7" class="result"></div>
+  </div>
+  
+  <div class="demo-section">
+    <h2>8. 动态组件</h2>
+    <div class="code">&lt;component :is="currentTab"&gt;&lt;/component&gt;
+&lt;div&gt;
+  &lt;button @click="switchTab('tab-home')"&gt;首页&lt;/button&gt;
+  &lt;button @click="switchTab('tab-posts')"&gt;文章&lt;/button&gt;
+  &lt;button @click="switchTab('tab-archive')"&gt;归档&lt;/button&gt;
+&lt;/div&gt;</div>
+    <div id="demo8" class="result"></div>
+  </div>
+  
+  <script type="module">
+    // 从本地构建的文件导入Mini-Vue
+    import { createApp, h, ref, reactive, computed, onMounted } from '../dist/mvue.esm-bundler.js'
+    
+    // 自定义组件
+    const MyComponent = {
+      props: ['title'],
+      setup(props, { slots }) {
+        return () => h('div', { class: 'custom-component' }, [
+          h('div', { class: 'header' }, slots.header?.() || 'Default Header'),
+          h('div', { class: 'content' }, slots.default?.() || 'Default Content'),
+          h('div', { class: 'footer' }, slots.footer?.() || 'Default Footer')
+        ])
+      }
+    }
+    
+    // 标签组件
+    const TabHome = {
+      setup() {
+        return () => h('div', null, '首页内容')
+      }
+    }
+    
+    const TabPosts = {
+      setup() {
+        return () => h('div', null, '文章列表内容')
+      }
+    }
+    
+    const TabArchive = {
+      setup() {
+        return () => h('div', null, '归档内容')
+      }
+    }
+    
+    // 自定义指令
+    const vFocus = {
+      mounted(el) {
+        el.focus()
+      }
+    }
+    
+    const vHighlight = {
+      mounted(el, binding) {
+        if (binding.arg === 'warning') {
+          el.style.color = binding.value
+        } else {
+          el.style.backgroundColor = binding.value
+        }
+      }
+    }
+    
+    // 创建应用
+    const app = createApp({
+      components: {
+        MyComponent,
+        TabHome,
+        TabPosts,
+        TabArchive
+      },
+      
+      directives: {
+        focus: vFocus,
+        highlight: vHighlight
+      },
+      
+      setup() {
+        // 响应式状态
+        const message = ref('Hello, Mini-Vue!')
+        const title = ref('悬停查看标题')
+        const show = ref(true)
+        const inputValue = ref('')
+        const currentTab = ref('tab-home')
+        
+        const items = reactive([
+          { text: '学习 Mini-Vue' },
+          { text: '构建应用' },
+          { text: '部署项目' }
+        ])
+        
+        // 方法
+        const handleClick = () => {
+          alert('点击事件触发了!')
+        }
+        
+        const toggleShow = () => {
+          show.value = !show.value
+        }
+        
+        const switchTab = (tab) => {
+          currentTab.value = tab
+        }
+        
+        // 挂载后
+        onMounted(() => {
+          console.log('应用已挂载')
+          
+          // 渲染各个示例
+          renderDemo1()
+          renderDemo2()
+          renderDemo3()
+          renderDemo4()
+          renderDemo5()
+          renderDemo6()
+          renderDemo7()
+          renderDemo8()
+        })
+        
+        // 各示例的渲染函数
+        const renderDemo1 = () => {
+          const demo1 = document.getElementById('demo1')
+          demo1.innerHTML = `<div>${message.value}</div>`
+        }
+        
+        const renderDemo2 = () => {
+          const demo2 = document.getElementById('demo2')
+          demo2.innerHTML = `<div title="${title.value}" style="cursor:pointer">点击我触发事件</div>`
+          demo2.querySelector('div').addEventListener('click', handleClick)
+        }
+        
+        const renderDemo3 = () => {
+          const demo3 = document.getElementById('demo3')
+          const updateDemo3 = () => {
+            demo3.innerHTML = `
+              <div>
+                ${show.value 
+                  ? '<p>显示这段文本</p>' 
+                  : '<p>显示另一段文本</p>'}
+                <button>切换显示</button>
+              </div>
+            `
+            demo3.querySelector('button').addEventListener('click', () => {
+              toggleShow()
+              updateDemo3()
+            })
+          }
+          updateDemo3()
+        }
+        
+        const renderDemo4 = () => {
+          const demo4 = document.getElementById('demo4')
+          demo4.innerHTML = `
+            <ul>
+              ${items.map((item, index) => 
+                `<li>${index + 1}. ${item.text}</li>`
+              ).join('')}
+            </ul>
+          `
+        }
+        
+        const renderDemo5 = () => {
+          const demo5 = document.getElementById('demo5')
+          const updateDemo5 = () => {
+            demo5.innerHTML = `
+              <div>
+                <input placeholder="请输入内容" value="${inputValue.value}">
+                <p>您输入的内容: ${inputValue.value}</p>
+              </div>
+            `
+            demo5.querySelector('input').addEventListener('input', (e) => {
+              inputValue.value = e.target.value
+              updateDemo5()
+            })
+          }
+          updateDemo5()
+        }
+        
+        const renderDemo6 = () => {
+          const demo6 = document.getElementById('demo6')
+          demo6.innerHTML = `
+            <div>
+              <input placeholder="自动聚焦">
+              <p style="color: red">带有自定义高亮效果的文本</p>
+            </div>
+          `
+          // 模拟v-focus指令
+          setTimeout(() => {
+            demo6.querySelector('input').focus()
+          }, 100)
+        }
+        
+        const renderDemo7 = () => {
+          const demo7 = document.getElementById('demo7')
+          demo7.innerHTML = `
+            <div class="custom-component">
+              <div class="header"><h3>自定义标题</h3></div>
+              <div class="content"><p>默认内容</p></div>
+              <div class="footer"><p>页脚内容</p></div>
+            </div>
+          `
+        }
+        
+        const renderDemo8 = () => {
+          const demo8 = document.getElementById('demo8')
+          const updateDemo8 = () => {
+            let tabContent = ''
+            
+            switch(currentTab.value) {
+              case 'tab-home':
+                tabContent = '首页内容'
+                break
+              case 'tab-posts':
+                tabContent = '文章列表内容'
+                break
+              case 'tab-archive':
+                tabContent = '归档内容'
+                break
+            }
+            
+            demo8.innerHTML = `
+              <div>${tabContent}</div>
+              <div>
+                <button>首页</button>
+                <button>文章</button>
+                <button>归档</button>
+              </div>
+            `
+            
+            const buttons = demo8.querySelectorAll('button')
+            buttons[0].addEventListener('click', () => {
+              switchTab('tab-home')
+              updateDemo8()
+            })
+            buttons[1].addEventListener('click', () => {
+              switchTab('tab-posts')
+              updateDemo8()
+            })
+            buttons[2].addEventListener('click', () => {
+              switchTab('tab-archive')
+              updateDemo8()
+            })
+          }
+          
+          updateDemo8()
+        }
+        
+        return {
+          message,
+          title,
+          show,
+          items,
+          inputValue,
+          currentTab,
+          handleClick,
+          toggleShow,
+          switchTab
+        }
+      }
+    })
+    
+    // 挂载应用
+    app.mount('#app')
+  </script>
+</body>
+</html> 
