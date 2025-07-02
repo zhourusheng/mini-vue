@@ -1,5 +1,5 @@
 ---
-description: 
+description: Vue模板编译器的开发规范和最佳实践
 globs: 
 alwaysApply: false
 ---
@@ -24,5 +24,4 @@ alwaysApply: false
 ## 兼容性
 - 生成的渲染函数应与runtime-core完全兼容
 - 支持Vue指令的标准语法
-- 提供与Vue3模板编译器兼容的API
-
+- 提供与Vue3模板编译器兼容的API 

@@ -3,8 +3,6 @@ description:
 globs: 
 alwaysApply: true
 ---
-# mini-vue 通用开发规范
-
 ## 系统环境
 - 操作系统：Windows 10 专业版 22H2
 
@@ -19,5 +17,5 @@ alwaysApply: true
 ## 代码修改规范
 - 修复BUG或者开发新功能时，不要直接修改dist目录里面编译过后的代码
 - 始终修改src源代码，然后重新构建项目
-- 示例：修改src/compiler-sfc/compile.ts而不是dist/compiler-sfc/compile.js
 
+- 示例：修改src/compiler-sfc/compile.ts而不是dist/compiler-sfc/compile.js

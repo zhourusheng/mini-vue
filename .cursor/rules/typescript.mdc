@@ -1,7 +1,7 @@
 ---
-description: 
+description: mini-vue项目的TypeScript开发规范和最佳实践
 globs: 
-alwaysApply: true
+alwaysApply: false
 ---
 # TypeScript 编码规范
 
@@ -28,5 +28,4 @@ alwaysApply: true
 - 使用JSDoc风格的注释
 - 为每个公共API添加注释
 - 复杂逻辑需要添加必要的注释说明
-- 注释应该解释"为什么"而不是"是什么"
-
+- 注释应该解释"为什么"而不是"是什么" 

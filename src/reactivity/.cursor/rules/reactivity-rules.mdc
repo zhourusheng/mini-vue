@@ -1,6 +1,6 @@
 ---
-description:
-globs:
+description: Vue响应式系统的开发规范和最佳实践
+globs: 
 alwaysApply: false
 ---
 # 响应式系统开发规范
@@ -23,4 +23,4 @@ alwaysApply: false
 ## 调试支持
 - 提供开发环境下的调试信息
 - 为复杂操作添加详细注释
-- 实现依赖追踪功能以方便调试
+- 实现依赖追踪功能以方便调试 

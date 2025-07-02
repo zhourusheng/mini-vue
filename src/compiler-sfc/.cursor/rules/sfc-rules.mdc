@@ -1,5 +1,5 @@
 ---
-description: 
+description: Vue单文件组件(SFC)编译器的开发规范
 globs: 
 alwaysApply: false
 ---
@@ -23,5 +23,4 @@ alwaysApply: false
 ## 性能考虑
 - 避免在编译过程中进行重复的解析和转换
 - 对大型模板的编译过程进行分步处理
-- 缓存编译结果以提升性能
-
+- 缓存编译结果以提升性能 
