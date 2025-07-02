@@ -1,0 +1,23 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# mini-vue 通用开发规范
+
+## 系统环境
+- 操作系统：Windows 10 专业版 22H2
+
+## 命令行规范
+- 在PowerShell中，执行命令时，需要使用分号(;)作为命令分隔符，不支持&&
+- 示例：`cd src/components; pnpm build`而不是`cd src/components && pnpm build`
+
+## 包管理器规范
+- 所有项目的包管理器统一使用pnpm
+- 不要使用npm或者yarn安装依赖或执行脚本
+
+## 代码修改规范
+- 修复BUG或者开发新功能时，不要直接修改dist目录里面编译过后的代码
+- 始终修改src源代码，然后重新构建项目
+- 示例：修改src/compiler-sfc/compile.ts而不是dist/compiler-sfc/compile.js
+

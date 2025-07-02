@@ -98,7 +98,7 @@ export function compileSFC(
 ${styleImports}
 
 // 导入Vue运行时
-import { h, defineComponent } from 'vue'
+import { h, defineComponent } from '@donglan/mvue'
 
 // 脚本部分
 ${scriptCode}
