@@ -1,6 +1,6 @@
 {
   "name": "@donglan/mvue",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "一个简化版的Vue框架实现",
   "main": "dist/mvue.cjs.js",
   "module": "dist/mvue.esm-bundler.js",
