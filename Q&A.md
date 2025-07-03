@@ -1231,13 +1231,13 @@ function patchKeyedChildren(c1, c2, container, parentAnchor, parentComponent) {
 export function compile(template: string, options: ExtendedCompilerOptions = {}): CodegenResult {
   try {
     // 1. 解析模板为AST
-    const ast = parse(template, finalOptions)
+    const ast = parse(template, options)
     
     // 2. 转换AST
-    const transformedAST = transform(ast, finalOptions)
+    const transformedAST = transform(ast, options)
     
     // 3. 生成代码
-    const code = generate(transformedAST, finalOptions)
+    const code = generate(transformedAST, options)
     
     return code
   } catch (error: any) {
@@ -1783,3 +1783,314 @@ mount(rootContainer: Element | string) {
 5. **更新机制**：组件的更新会导致其subTree重新生成，进而触发虚拟DOM的diff和更新
 
 这种设计使得Vue能够在保持组件化开发模式的同时，利用虚拟DOM提供高效的渲染性能。组件树提供了更好的代码组织和状态管理，而虚拟DOM树则提供了高效的UI渲染和更新机制。
+
+### Q6. 数据拦截的本质是什么？
+
+从源码角度分析，数据拦截的本质是**通过特定的语言特性（如代理或访问器属性）劫持数据的读取和修改操作，实现依赖追踪和变更通知**。在mini-vue中，这一机制主要通过两种方式实现：
+
+#### 1. Proxy 拦截对象（reactive API）
+
+对于对象类型的数据，mini-vue 使用 ES6 的 Proxy 实现拦截：
+
+```ts
+// reactive.ts
+export function reactive<T extends object>(target: T): T {
+  return createReactiveObject(target, reactiveMap, reactiveHandler)
+}
+
+function createReactiveObject<T extends object>(
+  target: T,
+  proxyMap: WeakMap<object, any>,
+  handler: ProxyHandler<any>
+) {
+  // 缓存检查，避免重复代理
+  const existingProxy = proxyMap.get(target)
+  if (existingProxy) {
+    return existingProxy
+  }
+  
+  // 创建代理对象
+  const proxy = new Proxy(target, handler)
+  proxyMap.set(target, proxy)
+  return proxy
+}
+```
+
+Proxy 的核心处理器实现了四个主要的拦截操作：
+
+```ts
+function createReactiveHandler(isReadonly = false, shallow = false) {
+  return {
+    // 1. 拦截属性读取
+    get(target: object, key: string | symbol, receiver: object) {
+      // ... 特殊属性处理 ...
+      
+      const result = Reflect.get(target, key, receiver)
+      
+      // 依赖追踪：记录谁在使用这个属性
+      if (!isReadonly) {
+        track(target, key)
+      }
+      
+      // 深层响应式转换
+      if (!shallow && isObject(result)) {
+        return isReadonly ? readonly(result) : reactive(result)
+      }
+      
+      return result
+    },
+    
+    // 2. 拦截属性设置
+    set(target: object, key: string | symbol, value: any, receiver: object) {
+      if (isReadonly) {
+        console.warn(`属性 ${String(key)} 是只读的`)
+        return true
+      }
+      
+      const oldValue = (target as any)[key]
+      const result = Reflect.set(target, key, value, receiver)
+      
+      // 触发更新：通知依赖这个属性的副作用函数
+      if (oldValue !== value) {
+        trigger(target, key)
+      }
+      
+      return result
+    },
+    
+    // 3. 拦截属性存在性检查
+    has(target: object, key: string | symbol) {
+      const result = Reflect.has(target, key)
+      if (!isReadonly) {
+        track(target, key)
+      }
+      return result
+    },
+    
+    // 4. 拦截属性删除
+    deleteProperty(target: object, key: string | symbol) {
+      // ... 只读检查 ...
+      
+      const hadKey = Object.prototype.hasOwnProperty.call(target, key)
+      const result = Reflect.deleteProperty(target, key)
+      
+      if (hadKey && result) {
+        trigger(target, key)
+      }
+      
+      return result
+    }
+  }
+}
+```
+
+#### 2. 访问器属性拦截基本类型（ref API）
+
+对于基本类型的数据，mini-vue 使用类的 getter/setter 实现拦截：
+
+```ts
+// ref.ts
+export function ref<T>(value: T): Ref<T> {
+  return createRef(value)
+}
+
+class RefImpl<T> {
+  private _value: T
+  private _rawValue: T
+  public dep: Set<ReactiveEffect> = new Set()
+  
+  constructor(value: T, private readonly _shallow = false) {
+    this._rawValue = value
+    this._value = _shallow ? value : convert(value)
+  }
+
+  // 拦截.value的读取
+  get value() {
+    // 依赖追踪
+    if (isTracking()) {
+      trackEffects(this.dep)
+    }
+    return this._value
+  }
+
+  // 拦截.value的设置
+  set value(newValue) {
+    if (Object.is(toRaw(newValue), this._rawValue)) {
+      return
+    }
+    
+    this._rawValue = newValue
+    this._value = this._shallow ? newValue : convert(newValue)
+    // 触发更新
+    triggerEffects(this.dep)
+  }
+}
+```
+
+#### 3. 依赖追踪与触发更新的核心机制
+
+数据拦截的目的是实现依赖追踪和变更通知，其核心机制体现在：
+
+##### 3.1 依赖追踪 (track)
+
+```ts
+// effect.ts
+export function track(target: object, key: unknown) {
+  if (!isTracking()) {
+    return
+  }
+  
+  // 获取目标对象的依赖Map
+  let depsMap = targetMap.get(target)
+  if (!depsMap) {
+    depsMap = new Map()
+    targetMap.set(target, depsMap)
+  }
+  
+  // 获取属性的依赖集合
+  let dep = depsMap.get(key)
+  if (!dep) {
+    dep = new Set<ReactiveEffect>()
+    depsMap.set(key, dep)
+  }
+  
+  // 将当前活跃的副作用函数添加到依赖集合
+  trackEffects(dep)
+}
+```
+
+这里构建了一个三层嵌套的数据结构：
+1. **WeakMap**: 键是原始对象，值是该对象的依赖映射
+2. **Map**: 键是对象的属性，值是依赖该属性的副作用函数集合
+3. **Set**: 存储依赖该属性的所有副作用函数
+
+##### 3.2 触发更新 (trigger)
+
+```ts
+export function trigger(target: object, key: unknown) {
+  const depsMap = targetMap.get(target)
+  if (!depsMap) {
+    return
+  }
+  
+  const dep = depsMap.get(key)
+  
+  if (dep) {
+    triggerEffects(dep)
+  }
+}
+
+export function triggerEffects(dep: Set<ReactiveEffect>) {
+  const effects = [...dep]
+  
+  for (const effect of effects) {
+    // 避免递归触发
+    if (effect !== activeEffect) {
+      // 如果有调度器，则使用调度器运行
+      if (effect.scheduler) {
+        effect.scheduler(effect)
+      } else {
+        // 否则直接运行副作用函数
+        effect.run()
+      }
+    }
+  }
+}
+```
+
+触发更新时，会遍历所有依赖该属性的副作用函数并执行它们，从而实现响应式更新。
+
+#### 4. 副作用函数：连接数据与UI的桥梁
+
+副作用函数是整个响应式系统的核心，它连接了数据变化与UI更新：
+
+```ts
+// effect.ts
+export function effect<T = any>(
+  fn: () => T,
+  options?: {
+    scheduler?: (job: ReactiveEffect) => void
+    lazy?: boolean
+  }
+): {
+  (): T
+  effect: ReactiveEffect
+} {
+  // 创建副作用函数实例
+  const _effect = new ReactiveEffect(fn, options?.scheduler)
+  
+  // 默认立即执行一次，建立依赖关系
+  if (!options?.lazy) {
+    _effect.run()
+  }
+  
+  // 返回可调用的runner函数
+  const runner = _effect.run.bind(_effect) as any
+  runner.effect = _effect
+  
+  return runner
+}
+```
+
+副作用函数的执行过程中会访问响应式数据，从而触发数据的 getter，建立依赖关系：
+
+```ts
+// ReactiveEffect类的run方法
+run() {
+  // ...
+  try {
+    activeEffect = this
+    shouldTrack = true
+    
+    // 执行函数，会触发代理的getter，从而收集依赖
+    return this.fn()
+  } finally {
+    // ...
+  }
+}
+```
+
+#### 5. 自动解包机制：提升开发体验
+
+为了提升开发体验，mini-vue 还实现了 ref 的自动解包机制：
+
+```ts
+// ref.ts
+export function proxyRefs<T extends object>(objectWithRefs: T): T {
+  return new Proxy(objectWithRefs, {
+    get(target, key, receiver) {
+      // 自动解包：如果是ref则返回.value
+      return unref(Reflect.get(target, key, receiver))
+    },
+    set(target: any, key, value, receiver) {
+      // 如果原属性是ref但新值不是ref，则设置.value
+      if (isRef(target[key]) && !isRef(value)) {
+        target[key].value = value
+        return true
+      } else {
+        return Reflect.set(target, key, value, receiver)
+      }
+    }
+  })
+}
+```
+
+这使得在组件的模板中可以直接使用 ref 变量而不需要 `.value`。
+
+#### 总结
+
+数据拦截的本质可以概括为：
+
+1. **拦截数据操作**：通过 Proxy 或访问器属性拦截数据的读取和修改
+2. **依赖收集**：在数据被读取时，记录当前的副作用函数作为依赖
+3. **变更通知**：在数据被修改时，通知所有依赖执行更新
+4. **精确更新**：通过细粒度的依赖追踪，确保只有真正依赖变化数据的部分才会更新
+
+这种响应式系统设计的优点在于：
+
+- **自动依赖追踪**：无需手动声明依赖关系
+- **细粒度更新**：只有真正依赖变化数据的部分才会更新
+- **深层响应式**：自动处理嵌套对象
+- **惰性访问**：只有被访问的属性才会被追踪
+
+通过这种数据拦截机制，Vue 实现了声明式的数据与UI绑定，使开发者能够专注于数据逻辑而不必关心DOM更新的细节。
